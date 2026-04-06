@@ -12,6 +12,7 @@
     "rtms"
   ],
   "scripts": {
+    "postinstall": "node scripts/rtms-postinstall.cjs",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:rtms\"",
     "dev:local": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
