@@ -1,0 +1,515 @@
+/**
+ * LLM chat completions — OpenAI (OPENAI_API_KEY) or OpenRouter
+ */
+
+const config = require('../config');
+
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+
+function useOpenAI() {
+  return !!config.openaiApiKey;
+}
+
+/**
+ * Chat completion (OpenAI when OPENAI_API_KEY is set, otherwise OpenRouter)
+ * @param {string} prompt - The user prompt
+ * @param {string} systemPrompt - System instructions
+ * @param {object} options - Additional options (model, maxTokens, etc.)
+ * @returns {Promise<string>} The AI response text
+ */
+async function callOpenRouter(prompt, systemPrompt = '', options = {}) {
+  const openai = useOpenAI();
+  const model = openai
+    ? (options.model || config.openaiModel)
+    : (options.model || config.defaultModel);
+  const maxTokens = options.maxTokens || 2048;
+
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  if (openai) {
+    headers['Authorization'] = `Bearer ${config.openaiApiKey}`;
+  } else {
+    headers['HTTP-Referer'] = config.publicUrl;
+    headers['X-Title'] = 'Arlo Meeting Assistant';
+    if (config.openrouterApiKey) {
+      headers['Authorization'] = `Bearer ${config.openrouterApiKey}`;
+    }
+  }
+
+  const messages = [];
+  if (systemPrompt) {
+    messages.push({ role: 'system', content: systemPrompt });
+  }
+  messages.push({ role: 'user', content: prompt });
+
+  const apiUrl = openai ? OPENAI_API_URL : OPENROUTER_API_URL;
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model,
+        messages,
+        max_tokens: maxTokens,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      const label = openai ? 'OpenAI' : 'OpenRouter';
+      console.error(`❌ ${label} API error:`, response.status, errorText);
+
+      if (openai) {
+        if (model !== config.openaiFallbackModel) {
+          console.log('🔄 Trying OpenAI fallback model:', config.openaiFallbackModel);
+          return callOpenRouter(prompt, systemPrompt, {
+            ...options,
+            model: config.openaiFallbackModel,
+          });
+        }
+      } else if (model !== config.fallbackModel) {
+        console.log('🔄 Trying fallback model:', config.fallbackModel);
+        return callOpenRouter(prompt, systemPrompt, {
+          ...options,
+          model: config.fallbackModel,
+        });
+      }
+
+      throw new Error(`${label} API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || '';
+  } catch (error) {
+    console.error('❌ LLM call failed:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Generate meeting summary
+ * @param {string} transcript - Full transcript text
+ * @param {string} meetingTitle - Meeting title for context
+ * @returns {Promise<object>} Summary object with sections
+ */
+async function generateSummary(transcript, meetingTitle = 'Meeting') {
+  const systemPrompt = `You are an expert meeting assistant. Your job is to create clear, concise meeting summaries.
+Focus on the key points, decisions made, and important discussions.
+Format your response as JSON with the following structure:
+{
+  "overview": "2-3 sentence high-level summary",
+  "keyPoints": ["point 1", "point 2", ...],
+  "decisions": ["decision 1", "decision 2", ...],
+  "nextSteps": ["next step 1", "next step 2", ...]
+}
+Only output valid JSON, no markdown or explanation.`;
+
+  const prompt = `Please summarize this meeting transcript from "${meetingTitle}":
+
+${transcript}`;
+
+  try {
+    const response = await callOpenRouter(prompt, systemPrompt, { maxTokens: 1024 });
+
+    // Strip markdown code fences if present (e.g., ```json ... ```)
+    const cleaned = response.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+
+    // Try to parse as JSON
+    try {
+      const parsed = JSON.parse(cleaned);
+      return parsed;
+    } catch {
+      // If JSON parsing fails, return structured response
+      return {
+        overview: cleaned,
+        keyPoints: [],
+        decisions: [],
+        nextSteps: [],
+      };
+    }
+  } catch (error) {
+    console.error('❌ Summary generation failed:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Extract action items from transcript
+ * @param {string} transcript - Full transcript text
+ * @returns {Promise<array>} Array of action items
+ */
+async function extractActionItems(transcript) {
+  const systemPrompt = `You are an expert at identifying action items from meeting transcripts.
+Extract specific, actionable tasks that were mentioned or assigned during the meeting.
+For each action item, identify who it was assigned to if mentioned.
+
+Format your response as a JSON array:
+[
+  {"task": "description of task", "owner": "person name or null", "priority": "high|medium|low"},
+  ...
+]
+Only output valid JSON array, no markdown or explanation.`;
+
+  const prompt = `Extract all action items from this meeting transcript:
+
+${transcript}`;
+
+  try {
+    const response = await callOpenRouter(prompt, systemPrompt, { maxTokens: 1024 });
+
+    // Strip markdown code fences if present (e.g., ```json ... ```)
+    const cleaned = response.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+
+    // Try to parse as JSON
+    try {
+      const parsed = JSON.parse(cleaned);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      // If JSON parsing fails, return empty array
+      console.warn('⚠️ Could not parse action items JSON');
+      return [];
+    }
+  } catch (error) {
+    console.error('❌ Action items extraction failed:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Chat with transcript (RAG-style Q&A)
+ * @param {string} question - User's question
+ * @param {string} transcript - Relevant transcript context
+ * @param {string} meetingTitle - Meeting title for context
+ * @returns {Promise<string>} AI response
+ */
+async function chatWithTranscript(question, transcript, meetingTitle = 'Meeting') {
+  const systemPrompt = `You are a helpful meeting assistant. Answer questions about the meeting based on the transcript provided.
+Be specific and cite relevant parts of the conversation when possible.
+If the answer is not in the transcript, say so clearly.
+Keep answers concise but informative.`;
+
+  const prompt = `Meeting: "${meetingTitle}"
+
+Transcript:
+${transcript}
+
+Question: ${question}`;
+
+  try {
+    return await callOpenRouter(prompt, systemPrompt, { maxTokens: 512 });
+  } catch (error) {
+    console.error('❌ Chat failed:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Generate real-time meeting suggestions
+ * @param {string} recentTranscript - Last few minutes of transcript
+ * @returns {Promise<array>} Array of suggestion objects
+ */
+async function generateSuggestions(recentTranscript) {
+  const systemPrompt = `You are a real-time meeting assistant. Based on the recent transcript, generate 1-2 brief, actionable suggestions or observations.
+Examples: "Clarify the timeline for the feature release", "Assign an owner for the database migration task"
+Format as JSON array: [{"type": "suggestion", "text": "brief text"}]
+Only output valid JSON array.`;
+
+  const prompt = `Recent transcript:\n\n${recentTranscript}`;
+
+  try {
+    const response = await callOpenRouter(prompt, systemPrompt, { maxTokens: 256 });
+    const cleaned = response.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+    try {
+      const parsed = JSON.parse(cleaned);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  } catch (error) {
+    console.error('Suggestions generation failed:', error.message);
+    return [];
+  }
+}
+
+/**
+ * Generate a concise meeting title from transcript or summary content
+ * @param {string} content - Transcript text or summary overview
+ * @param {string} currentTitle - Current meeting title for context
+ * @returns {Promise<string>} Generated title (under 60 chars)
+ */
+async function generateTitle(content, currentTitle = 'Meeting') {
+  const systemPrompt = `You are an expert at creating concise, descriptive meeting titles.
+Given the meeting content, generate a short, meaningful title that captures the main topic or purpose.
+Rules:
+- Maximum 60 characters
+- No quotes around the title
+- Use title case
+- Be specific — avoid generic titles like "Team Meeting" or "Weekly Sync"
+- Output ONLY the title, nothing else`;
+
+  const prompt = `Current title: "${currentTitle}"
+
+Meeting content:
+${content.substring(0, 3000)}
+
+Generate a better, more descriptive title:`;
+
+  try {
+    const response = await callOpenRouter(prompt, systemPrompt, { maxTokens: 64 });
+    // Clean up: remove quotes, trim whitespace, truncate if needed
+    return response.replace(/^["']|["']$/g, '').trim().substring(0, 60);
+  } catch (error) {
+    console.error('❌ Title generation failed:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Extract SOAP notes from healthcare transcript
+ * @param {string} transcript - Full transcript text
+ * @param {object} currentSoap - Current SOAP data (for incremental updates)
+ * @returns {Promise<object>} SOAP notes object with subjective, objective, assessment, plan
+ */
+async function extractSOAPNotes(transcript, currentSoap = {}) {
+  const systemPrompt = `You are a clinical documentation assistant helping healthcare providers document patient encounters.
+Extract SOAP notes from the transcript. Be accurate and use clinical terminology.
+
+SOAP Format:
+- Subjective (S): Patient's own words about symptoms, concerns, history. Include chief complaint, history of present illness, and patient statements.
+- Objective (O): Observable, measurable findings discussed. Include vital signs, physical exam findings, test results mentioned.
+- Assessment (A): Clinical interpretation and diagnoses discussed. Include differential diagnoses if mentioned.
+- Plan (P): Treatment plan and next steps. Include medications, referrals, follow-up appointments, patient education.
+
+Format your response as JSON:
+{
+  "subjective": "text content or empty string",
+  "objective": "text content or empty string",
+  "assessment": "text content or empty string",
+  "plan": "text content or empty string",
+  "confidence": {
+    "subjective": 0.0-1.0,
+    "objective": 0.0-1.0,
+    "assessment": 0.0-1.0,
+    "plan": 0.0-1.0
+  }
+}
+
+Confidence scores indicate how certain you are about the extracted content (1.0 = very confident, 0.5 = moderate, 0.0 = guessing).
+Only output valid JSON, no markdown or explanation.`;
+
+  const prompt = `Extract SOAP notes from this clinical encounter transcript:
+
+${transcript}
+
+${Object.values(currentSoap).some(v => v) ? `
+Current SOAP notes (update or enhance these):
+S: ${currentSoap.subjective || '(empty)'}
+O: ${currentSoap.objective || '(empty)'}
+A: ${currentSoap.assessment || '(empty)'}
+P: ${currentSoap.plan || '(empty)'}
+` : ''}`;
+
+  try {
+    const response = await callOpenRouter(prompt, systemPrompt, { maxTokens: 1536 });
+
+    // Strip markdown code fences if present
+    const cleaned = response.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+
+    try {
+      const parsed = JSON.parse(cleaned);
+      return {
+        subjective: parsed.subjective || '',
+        objective: parsed.objective || '',
+        assessment: parsed.assessment || '',
+        plan: parsed.plan || '',
+        confidence: parsed.confidence || {},
+      };
+    } catch {
+      console.warn('⚠️ Could not parse SOAP notes JSON');
+      return {
+        subjective: '',
+        objective: '',
+        assessment: '',
+        plan: '',
+        confidence: {},
+      };
+    }
+  } catch (error) {
+    console.error('❌ SOAP notes extraction failed:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Analyze sentiment of customer speech in a support call
+ * @param {string} text - The text to analyze
+ * @returns {Promise<object>} Sentiment analysis result
+ */
+async function analyzeSentiment(text) {
+  const systemPrompt = `You are an expert sentiment analyzer for customer support calls.
+Analyze the customer's emotional state from their speech.
+
+Return ONLY a JSON object with:
+- sentiment: one of "angry", "frustrated", "neutral", "satisfied", "happy"
+- confidence: number 0-100
+- reason: brief explanation (under 20 words)
+
+Consider:
+- Negation ("not happy" = negative, "not angry" = less negative)
+- Sarcasm and tone
+- Overall context and meaning
+- Intensity words ("very", "extremely", "a bit")
+
+Examples:
+"I am not happy with this" → frustrated or angry
+"Thanks, that's not bad" → satisfied
+"This is unacceptable!" → angry
+"I guess that works" → neutral/satisfied
+
+Output ONLY valid JSON, no markdown.`;
+
+  const prompt = `Analyze sentiment: "${text}"`;
+
+  try {
+    const response = await callOpenRouter(prompt, systemPrompt, { maxTokens: 100 });
+    const cleaned = response.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+
+    try {
+      const parsed = JSON.parse(cleaned);
+      return {
+        sentiment: parsed.sentiment || 'neutral',
+        confidence: parsed.confidence || 50,
+        reason: parsed.reason || '',
+      };
+    } catch {
+      // Fallback if JSON parsing fails
+      return { sentiment: 'neutral', confidence: 0, reason: 'Could not parse response' };
+    }
+  } catch (error) {
+    console.error('❌ Sentiment analysis failed:', error.message);
+    return { sentiment: 'neutral', confidence: 0, reason: 'Analysis failed' };
+  }
+}
+
+/**
+ * Professor / classroom: topic change, glossary, and definitions from rolling window
+ */
+async function analyzeTopicSegment(recentText) {
+  const systemPrompt = `You are an assistant for live university lectures.
+Given the RECENT spoken transcript (may be partial), respond with ONLY valid JSON:
+{
+  "topicChanged": boolean,
+  "previousTopicSummary": ["bullet 1", "bullet 2", "bullet 3"] or [] if no clear prior topic,
+  "currentTopic": "short label",
+  "glossary": [{"term": "...", "definition": "..."}],
+  "formulas": [{"label": "...", "expression": "..."}]
+}
+If the lecture is still on the same topic, set topicChanged to false and keep previousTopicSummary empty.`;
+
+  const prompt = `Recent lecture transcript:\n\n${recentText}`;
+
+  const response = await callOpenRouter(prompt, systemPrompt, { maxTokens: 1024 });
+  const cleaned = response.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    return {
+      topicChanged: false,
+      previousTopicSummary: [],
+      currentTopic: '',
+      glossary: [],
+      formulas: [],
+    };
+  }
+}
+
+/**
+ * Generate multiple-choice quiz from transcript text (prior class or rolling context)
+ */
+async function generateQuizQuestions(transcript, count = 5) {
+  const systemPrompt = `You create short multiple-choice quizzes for students.
+Output ONLY valid JSON:
+{
+  "questions": [
+    {"question": "...", "options": ["A","B","C","D"], "correctIndex": 0}
+  ]
+}
+correctIndex is 0-based. Exactly ${count} questions.`;
+
+  const prompt = `Create ${count} multiple-choice questions based on this lecture material:\n\n${transcript}`;
+
+  const response = await callOpenRouter(prompt, systemPrompt, { maxTokens: 2048 });
+  const cleaned = response.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+  try {
+    const parsed = JSON.parse(cleaned);
+    return Array.isArray(parsed.questions) ? parsed.questions : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Detect professor emphasis cues in recent text
+ */
+async function detectProfessorCues(recentText) {
+  const systemPrompt = `You detect moments when an instructor signals importance in a live class.
+Output ONLY valid JSON: { "cueDetected": boolean, "reason": "short phrase", "matchedPhrases": ["..."] }
+If the last segment does not contain emphasis, cueDetected false.`;
+
+  const prompt = `Transcript snippet:\n\n${recentText}`;
+
+  const response = await callOpenRouter(prompt, systemPrompt, { maxTokens: 256 });
+  const cleaned = response.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    return { cueDetected: false, reason: '', matchedPhrases: [] };
+  }
+}
+
+/**
+ * Recovery / post-class: explain a bookmarked moment simply + practice item
+ */
+async function generateRecoverySegment(transcriptSnippet) {
+  const systemPrompt = `You help students who were confused during a lecture.
+Output ONLY valid JSON:
+{
+  "simpleExplanation": "plain-language explanation",
+  "practiceProblem": "one short exercise or thought question",
+  "keyTerms": ["term1", "term2"]
+}`;
+
+  const prompt = `Explain this transcript segment simply and give one practice problem:\n\n${transcriptSnippet}`;
+
+  const response = await callOpenRouter(prompt, systemPrompt, { maxTokens: 768 });
+  const cleaned = response.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    return {
+      simpleExplanation: cleaned,
+      practiceProblem: '',
+      keyTerms: [],
+    };
+  }
+}
+
+module.exports = {
+  callOpenRouter,
+  generateSummary,
+  generateTitle,
+  extractActionItems,
+  chatWithTranscript,
+  generateSuggestions,
+  extractSOAPNotes,
+  analyzeSentiment,
+  analyzeTopicSegment,
+  generateQuizQuestions,
+  detectProfessorCues,
+  generateRecoverySegment,
+};

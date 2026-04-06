@@ -1,0 +1,194 @@
+.landing-page {
+  min-height: 100vh;
+  background: var(--background);
+}
+
+/* Hero */
+.landing-hero {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 64px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 32px;
+}
+
+.landing-owl {
+  padding: 16px;
+  background: #FFFFFF;
+  border-radius: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.landing-hero-text {
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.landing-hero-title {
+  font-size: 2.25rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+@media (min-width: 768px) {
+  .landing-hero-title {
+    font-size: 3rem;
+    line-height: 1.15;
+  }
+}
+
+.landing-hero-subtitle {
+  font-size: 1.125rem;
+}
+
+.landing-hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .landing-hero-actions {
+    flex-direction: row;
+  }
+}
+
+/* Sections */
+.landing-section {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 64px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.landing-section-title {
+  font-size: 1.875rem;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+/* Feature grid */
+.landing-features-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .landing-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-features-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.landing-feature-card {
+  text-align: left;
+}
+
+.landing-feature-inner {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.landing-feature-icon-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+/* How it works — steps */
+.landing-steps-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+}
+
+@media (min-width: 768px) {
+  .landing-steps-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.landing-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+}
+
+.landing-step-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 9999px;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.landing-step-arrow {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .landing-step-arrow {
+    display: block;
+    position: absolute;
+    top: 32px;
+    left: calc(50% + 2rem);
+    width: calc(100% - 4rem);
+    border-top: 2px dashed var(--border);
+  }
+}
+
+.landing-step-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Bottom CTA */
+.landing-bottom-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 24px;
+}
+
+.landing-cta-title {
+  font-size: 1.875rem;
+  font-weight: 500;
+}
+
+/* Footer */
+.landing-footer {
+  border-top: 1px solid var(--border);
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 16px;
+  text-align: center;
+}

@@ -1,0 +1,252 @@
+/* Zoom Momentum — professor mode (uses index.css tokens) */
+
+.momentum-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 1rem);
+  padding-bottom: var(--space-6, 1.5rem);
+}
+
+.momentum-banner {
+  font-size: 0.8rem;
+  color: var(--color-muted, #64748b);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-surface-elevated, rgba(0, 0, 0, 0.04));
+}
+
+.momentum-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4, 1rem);
+}
+
+@media (min-width: 640px) {
+  .momentum-grid--split {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.momentum-section-title {
+  font-family: var(--font-serif, serif);
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.topic-card {
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-md, 8px);
+  padding: 0.75rem 1rem;
+  background: var(--color-surface, #fff);
+  animation: momentum-slide-in 0.35s ease-out;
+}
+
+.dark .topic-card {
+  background: var(--color-surface, #1e293b);
+  border-color: var(--color-border, #334155);
+}
+
+@keyframes momentum-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.topic-card__label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+  margin-bottom: 0.25rem;
+}
+
+.topic-card__title {
+  font-family: var(--font-serif, serif);
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
+}
+
+.topic-card ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.glossary-search {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: inherit;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.glossary-list {
+  max-height: 220px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.glossary-row {
+  padding: 0.5rem 0.65rem;
+  border-radius: 6px;
+  background: var(--color-surface-elevated, rgba(0, 0, 0, 0.03));
+  font-size: 0.85rem;
+}
+
+.glossary-row dt {
+  font-weight: 600;
+  margin: 0 0 0.15rem;
+}
+
+.glossary-row dd {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.trivia-countdown {
+  font-variant-numeric: tabular-nums;
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.trivia-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.trivia-option-btn {
+  text-align: left;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.trivia-option-btn:hover:not(:disabled) {
+  border-color: var(--color-accent, #4f46e5);
+}
+
+.trivia-option-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.leaderboard-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.leaderboard-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.35rem 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.poll-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.poll-modal {
+  max-width: 420px;
+  width: 100%;
+  padding: 1.25rem;
+  border-radius: var(--radius-lg, 12px);
+  background: var(--color-surface, #fff);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.dark .poll-modal {
+  background: var(--color-surface, #1e293b);
+}
+
+.poll-results-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.poll-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.poll-bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.poll-bar-fill {
+  height: 100%;
+  background: var(--color-accent, #4f46e5);
+  transition: width 0.3s ease;
+}
+
+.post-class-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.post-class-card {
+  max-width: 520px;
+  width: 100%;
+  max-height: 85vh;
+  overflow: auto;
+  padding: 1.25rem;
+  border-radius: 12px 12px 0 0;
+  background: var(--color-surface, #fff);
+}
+
+.dark .post-class-card {
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+.momentum-host-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.momentum-muted {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}

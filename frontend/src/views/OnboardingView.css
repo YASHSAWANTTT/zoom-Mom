@@ -1,0 +1,270 @@
+.onboarding-view {
+  min-height: 100vh;
+  background: var(--background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* Loading state (OAuthLoading) */
+.onboarding-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.onboarding-loading-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.onboarding-spinner {
+  color: var(--muted-foreground);
+  animation: spin 1s linear infinite;
+}
+
+.onboarding-owl {
+  color: var(--accent);
+}
+
+/* Success content */
+.onboarding-content {
+  max-width: 600px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Check icon circle */
+.onboarding-icon-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.onboarding-check-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 9999px;
+  background: #dcfce7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dark .onboarding-check-circle {
+  background: #052e16;
+}
+
+.onboarding-check-icon {
+  color: #16a34a;
+}
+
+.dark .onboarding-check-icon {
+  color: #4ade80;
+}
+
+/* Heading */
+.onboarding-heading {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.onboarding-title {
+  font-size: 1.875rem;
+  font-weight: 500;
+}
+
+/* ===== Upcoming Meetings Section ===== */
+.onboarding-meetings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.onboarding-meetings-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.onboarding-meetings-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.onboarding-meetings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Meeting card */
+.onboarding-meeting-card {
+  width: 100%;
+}
+
+.onboarding-meeting-card-interactive {
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.onboarding-meeting-card-interactive:hover {
+  background: color-mix(in srgb, var(--accent) 3%, var(--card));
+}
+
+.onboarding-meeting-inner {
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.onboarding-meeting-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.onboarding-meeting-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.onboarding-auto-badge {
+  background: var(--accent) !important;
+  color: white !important;
+  font-size: 0.625rem;
+  padding: 2px 6px;
+  animation: onboarding-fade-in 0.15s ease;
+}
+
+@keyframes onboarding-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.onboarding-recurring-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted-foreground);
+}
+
+/* Toggle column */
+.onboarding-toggle-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.onboarding-toggle-label {
+  font-size: 0.625rem;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+/* Enable all link */
+.onboarding-enable-all-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.onboarding-enable-all {
+  font-size: 0.75rem;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.onboarding-enable-all:hover {
+  text-decoration: underline;
+}
+
+/* Empty state */
+.onboarding-meetings-empty {
+  padding: 32px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+}
+
+/* ===== Skeleton Loading ===== */
+.onboarding-skeleton {
+  background: var(--muted);
+  border-radius: var(--radius-sm);
+  animation: onboarding-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes onboarding-shimmer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.onboarding-skeleton-title {
+  height: 16px;
+  width: 75%;
+}
+
+.onboarding-skeleton-date {
+  height: 12px;
+  width: 50%;
+  margin-top: 4px;
+}
+
+.onboarding-skeleton-toggle {
+  height: 20px;
+  width: 36px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+/* ===== Simplified Tip Card ===== */
+.onboarding-tip-card {
+  background: color-mix(in srgb, var(--muted) 30%, var(--card));
+  border-color: var(--muted);
+}
+
+.onboarding-tip-inner {
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.onboarding-tip-icon {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.onboarding-tip-text {
+  line-height: 1.6;
+}
+
+/* Actions */
+.onboarding-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.onboarding-open-zoom {
+  width: 100%;
+}

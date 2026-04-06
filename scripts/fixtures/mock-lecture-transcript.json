@@ -1,0 +1,13 @@
+[
+  { "text": "Welcome everyone. Today we begin Chapter 7 on linear transformations.", "speaker": "Host", "time": "0:01" },
+  { "text": "A linear map T from vector space V to W preserves vector addition and scalar multiplication.", "speaker": "Host", "time": "0:18" },
+  { "text": "Remember the kernel, or null space, is the set of vectors that map to zero.", "speaker": "Host", "time": "0:42" },
+  { "text": "The rank-nullity theorem says dimension of V equals rank of T plus nullity of T.", "speaker": "Host", "time": "1:05" },
+  { "text": "This is critical for the midterm: you must be able to prove this in both finite dimensions.", "speaker": "Host", "time": "1:28" },
+  { "text": "Let's work an example with a 3 by 3 matrix representing T in the standard basis.", "speaker": "Host", "time": "1:52" },
+  { "text": "Row reduce to find pivots; the number of pivot columns is the rank.", "speaker": "Host", "time": "2:14" },
+  { "text": "Any questions before we move on to eigenvalues?", "speaker": "Host", "time": "2:38" },
+  { "text": "Eigenvectors are non-zero vectors v such that T v equals lambda v for some scalar lambda.", "speaker": "Host", "time": "3:02" },
+  { "text": "The characteristic polynomial is det of A minus lambda I equals zero.", "speaker": "Host", "time": "3:26" },
+  { "text": "We will connect this to diagonalization next lecture.", "speaker": "Host", "time": "3:50" }
+]

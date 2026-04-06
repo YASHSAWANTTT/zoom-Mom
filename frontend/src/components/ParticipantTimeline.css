@@ -1,0 +1,175 @@
+/* =============================================================================
+   ParticipantTimeline — Inline event timeline
+   ============================================================================= */
+
+/* Card wrapper */
+.timeline-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+/* Header bar */
+.timeline-header {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Scroll area */
+.timeline-scroll-root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.timeline-viewport {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 20px;
+}
+
+/* Empty state */
+.timeline-empty {
+  padding: 48px 16px;
+  text-align: center;
+}
+
+/* =============================================================================
+   System Events (join/leave/meeting started)
+   ============================================================================= */
+
+.timeline-system-event {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  margin: 12px 0;
+  border-left: 2px solid var(--border);
+}
+
+.timeline-meeting-started {
+  background: color-mix(in srgb, var(--muted) 30%, transparent);
+  border-radius: var(--radius);
+  border-left: 2px solid var(--accent);
+  padding: 8px 12px;
+}
+
+.timeline-event-icon {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.timeline-event-text {
+  flex: 1;
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+
+.timeline-event-time {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+/* Fade-in animation for live events */
+.timeline-event-animate {
+  animation: timeline-fade-in 200ms ease-out;
+}
+
+@keyframes timeline-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =============================================================================
+   Transcript Entries
+   ============================================================================= */
+
+.timeline-transcript-entry {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.timeline-transcript-entry:last-child {
+  border-bottom: none;
+}
+
+.timeline-transcript-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.timeline-transcript-time {
+  font-size: 12px;
+}
+
+.timeline-transcript-speaker {
+  font-size: 14px;
+}
+
+.timeline-transcript-text {
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* =============================================================================
+   Jump to Bottom
+   ============================================================================= */
+
+.timeline-jump-bottom {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+/* =============================================================================
+   Responsive: 900px wide panel
+   ============================================================================= */
+
+@media (min-width: 600px) {
+  .timeline-viewport {
+    padding: 12px 20px;
+  }
+
+  .timeline-system-event {
+    max-width: 600px;
+  }
+
+  .timeline-transcript-header {
+    justify-content: flex-start;
+  }
+}
+
+/* =============================================================================
+   Responsive: 380px Zoom sidebar
+   ============================================================================= */
+
+@media (max-width: 420px) {
+  .timeline-viewport {
+    padding: 8px 12px;
+  }
+
+  .timeline-header {
+    padding: 10px 12px;
+  }
+
+  .timeline-transcript-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+}

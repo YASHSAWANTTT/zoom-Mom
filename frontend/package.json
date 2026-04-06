@@ -1,0 +1,46 @@
+{
+  "name": "arlo-meeting-assistant-frontend",
+  "version": "0.9.0",
+  "description": "Arlo — In-Meeting AI Assistant for Zoom",
+  "engines": {
+    "node": ">=20"
+  },
+  "private": true,
+  "dependencies": {
+    "@base-ui/react": "^1.1.0",
+    "@hello-pangea/dnd": "^18.0.1",
+    "@zoom/appssdk": "^0.16.0",
+    "axios": "^1.6.5",
+    "lucide-react": "^0.563.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.30.3",
+    "react-scripts": "5.0.1"
+  },
+  "devDependencies": {
+    "http-proxy-middleware": "^2.0.6"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

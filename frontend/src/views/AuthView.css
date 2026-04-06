@@ -1,0 +1,41 @@
+.auth-view {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.auth-content {
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+.auth-owl {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: #FFFFFF;
+  border-radius: 18px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.auth-text {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-text p {
+  line-height: 1.6;
+}
+
+.auth-btn {
+  width: 100%;
+}
