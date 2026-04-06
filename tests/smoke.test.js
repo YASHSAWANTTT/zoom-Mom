@@ -167,10 +167,11 @@ async function runTests() {
     assert(data.state, 'Response should include state');
   });
 
-  await test('GET /api/auth/me returns 401 when not authenticated', async () => {
+  await test('GET /api/auth/me returns 200 with user null when not authenticated', async () => {
     const res = await request(`${BASE_URL}/api/auth/me`);
-    // Should be 401 Unauthorized when no session cookie
-    assertEqual(res.status, 401, `Expected 401, got ${res.status}`);
+    assertEqual(res.status, 200, `Expected 200, got ${res.status}`);
+    const data = res.json();
+    assertEqual(data.user, null, 'user should be null without session');
   });
 
   await test('GET /api/meetings returns 401 when not authenticated', async () => {

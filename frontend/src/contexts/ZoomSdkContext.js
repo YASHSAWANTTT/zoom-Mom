@@ -7,6 +7,28 @@ const zoomSdk = window.zoomSdk;
 // Check if running outside Zoom (for testing)
 export const isTestMode = !zoomSdk || window.location.search.includes('test=true');
 
+/** Declared in Marketplace (Features → Zoom App SDK). Omit optional APIs that return 80004 app_not_support if not enabled. */
+const ZOOM_SDK_CAPABILITIES = [
+  'getMeetingContext',
+  'getMeetingUUID',
+  'getRunningContext',
+  'getUserContext',
+  'getMeetingParticipants',
+  'authorize',
+  'onAuthorized',
+  'promptAuthorize',
+  'callZoomApi',
+  'onMessage',
+  'postMessage',
+  'onActiveSpeakerChange',
+  'onMeeting',
+  'showNotification',
+  'sendMessageToChat',
+  'openUrl',
+  'onRunningContextChange',
+  'onMyUserContextChange',
+];
+
 export function ZoomSdkProvider({ children }) {
   const [sdkConfigured, setSdkConfigured] = useState(isTestMode);
   const [sdkError, setSdkError] = useState(null);
@@ -25,30 +47,7 @@ export function ZoomSdkProvider({ children }) {
     async function configureSdk() {
       try {
         const configResponse = await zoomSdk.config({
-          capabilities: [
-            'getMeetingContext',
-            'getMeetingUUID',
-            'getRunningContext',
-            'getUserContext',
-            'getMeetingParticipants',
-            'authorize',
-            'onAuthorized',
-            'promptAuthorize',
-            'callZoomApi',
-            'onMessage',
-            'postMessage',
-            'onActiveSpeakerChange',
-            'onMeeting',
-            'showNotification',
-            'sendMessageToChat',
-            'openUrl',
-            'onRunningContextChange',
-            'onMyUserContextChange',
-            'sendAppInvitationToAllParticipants',
-            'sendAppInvitation',
-            'showAppInvitationDialog',
-            'onSendAppInvitation',
-          ],
+          capabilities: ZOOM_SDK_CAPABILITIES,
           version: '0.16.0',
         });
 
@@ -138,16 +137,7 @@ export function ZoomSdkProvider({ children }) {
           if (newStatus === 'authorized') {
             try {
               await zoomSdk.config({
-                capabilities: [
-                  'getMeetingContext', 'getMeetingUUID', 'getRunningContext',
-                  'getUserContext', 'getMeetingParticipants', 'authorize',
-                  'onAuthorized', 'promptAuthorize', 'callZoomApi',
-                  'onMessage', 'postMessage', 'onActiveSpeakerChange', 'onMeeting',
-                  'showNotification',
-                  'sendMessageToChat', 'openUrl', 'onRunningContextChange',
-                  'onMyUserContextChange', 'sendAppInvitationToAllParticipants',
-                  'sendAppInvitation', 'showAppInvitationDialog', 'onSendAppInvitation',
-                ],
+                capabilities: ZOOM_SDK_CAPABILITIES,
                 version: '0.16.0',
               });
             } catch (err) {

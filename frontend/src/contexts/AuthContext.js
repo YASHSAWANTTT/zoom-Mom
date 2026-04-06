@@ -11,14 +11,19 @@ export function AuthProvider({ children }) {
   const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me', { credentials: 'include' });
-      if (response.ok) {
-        const data = await response.json();
+      if (!response.ok) {
+        setIsAuthenticated(false);
+        setUser(null);
+        return null;
+      }
+      const data = await response.json();
+      if (data.user) {
         setUser(data.user);
         setIsAuthenticated(true);
         return data.user;
       }
     } catch {
-      // Not authenticated
+      // Network error
     }
     setIsAuthenticated(false);
     setUser(null);

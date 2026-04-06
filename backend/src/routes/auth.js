@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const prisma = require('../lib/prisma');
 const { generatePKCE, generateState, encryptToken, decryptToken, generateToken } = require('../services/auth');
-const { requireAuth, devAuthBypass } = require('../middleware/auth');
+const { requireAuth, optionalAuth, devAuthBypass } = require('../middleware/auth');
 const config = require('../config');
 
 const router = express.Router();
@@ -331,17 +331,19 @@ router.post('/callback', async (req, res) => {
 
 /**
  * GET /api/auth/me
- * Get current authenticated user
+ * Session probe for the SPA — returns 200 + { user: null } when logged out (no red 401 in DevTools).
  */
 router.get('/me', async (req, res) => {
   try {
-    // Apply auth middleware
-    await new Promise((resolve, reject) => {
-      requireAuth(req, res, (err) => {
-        if (err) return reject(err);
+    await new Promise((resolve) => {
+      optionalAuth(req, res, () => {
         devAuthBypass(req, res, resolve);
       });
     });
+
+    if (!req.user) {
+      return res.json({ user: null });
+    }
 
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
@@ -356,15 +358,12 @@ router.get('/me', async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.json({ user: null });
     }
 
     res.json({ user });
   } catch (error) {
     console.error('Get user error:', error);
-    if (error.message === 'Unauthorized') {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
     res.status(500).json({ error: 'Failed to get user' });
   }
 });
